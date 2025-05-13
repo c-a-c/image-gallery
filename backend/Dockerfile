@@ -1,11 +1,16 @@
+# Dockerfile
+
 FROM golang:1.24
 
-RUN mkdir /project
-WORKDIR /project
+WORKDIR /build
 
 COPY go.mod . go.sum ./
-RUN go mod download
+RUN go mod tidy
 
 COPY . .
 
-# CMD ["go", "run", "main.go"]
+RUN go build -o app main.go
+
+EXPOSE 8080
+
+CMD ["go", "run", "main.go"]
