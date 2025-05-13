@@ -1,11 +1,9 @@
-// Author: asakura
-// Description: マイグレーションを行う関数を定義する。
-// マイグレーション: スキーマ変更をDBに対して適用すること。
+// migrate.go
 
 package main
 
 import (
-	"backend/db"
+	"backend/infrastructure/db"
 	"backend/model"
 	"fmt"
 )

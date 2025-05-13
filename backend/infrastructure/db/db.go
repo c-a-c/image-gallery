@@ -1,5 +1,4 @@
-// Author: asakura
-// Description: DBの接続と切断を行う関数を定義する。
+// db.go
 
 package db
 
@@ -22,14 +21,14 @@ func ConnectDB() *gorm.DB {
 			log.Fatalln(err)
 		}
 	}
-	
+
 	// urlの指定
-	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("POSTGRES_USER"), 
-		os.Getenv("POSTGRES_PW"), 
-		os.Getenv("POSTGRES_HOST"), 
-		os.Getenv("POSTGRES_PORT"), 
+	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PW"),
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
 		os.Getenv("POSTGRES_DB"))
-	
+
 	// DB接続
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
 	if err != nil {
