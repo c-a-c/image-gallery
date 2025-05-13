@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+    backend:
+        build:
+            context: ./backend
+        container_name: image-post-backend
+        working_dir: /project
+        ports:
+            - "8080:8080"
+        depends_on:
+            - db
+    db:
+        image: postgres:15.1-alpine
+        container_name: image-post-db
+        environment:
+            POSTGRES_USER: image_gallery
+            POSTGRES_PASSWORD: image_gallery
+            POSTGRES_DB: image_gallery
+        restart: always
+        ports:
+            - "3333:3333"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+volumes:
+    postgres_data:
