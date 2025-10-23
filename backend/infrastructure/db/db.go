@@ -1,47 +1,84 @@
-// db.go
-
 package db
 
 import (
 	"fmt"
 	"log"
 	"os"
+	"time"
+
+	"backend/domain"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-// DBの接続
+// ConnectDB establishes database connection
 func ConnectDB() *gorm.DB {
-	// 環境変数の読み込み
-	if os.Getenv(("GO_ENV")) == "dev" {
+	// Load environment variables
+	if os.Getenv("GO_ENV") == "dev" {
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}
 
-	// urlの指定
-	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PW"),
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DB"))
+	// Database connection string
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"))
 
-	// DB接続
-	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
+	// Connect to database
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("Failed to connect to database:", err)
 	}
-	fmt.Println("Connected")
+
+	// Get underlying sql.DB
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalln("Failed to get underlying sql.DB:", err)
+	}
+
+	// Configure connection pool
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// Auto migrate database schema
+	err = AutoMigrate(db)
+	if err != nil {
+		log.Fatalln("Failed to migrate database:", err)
+	}
+
+	fmt.Println("Database connected successfully")
 	return db
 }
 
-// DBの切断
+// AutoMigrate runs database migrations
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&domain.User{},
+		&domain.Image{},
+		&domain.Post{},
+	)
+}
+
+// CloseDB closes database connection
 func CloseDB(db *gorm.DB) {
-	sqlDB, _ := db.DB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Println("Failed to get underlying sql.DB:", err)
+		return
+	}
+
 	if err := sqlDB.Close(); err != nil {
-		log.Fatalln(err)
+		log.Println("Failed to close database:", err)
 	}
 }
