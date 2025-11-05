@@ -1,4 +1,4 @@
-.env
 backend/*.png
 backend/*.jpg
 backend/*.jpeg
+backend/config/*
