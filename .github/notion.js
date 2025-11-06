@@ -65,7 +65,7 @@ async function findNotionPage(issueNumber) {
       filter: {
         property: "Issue ID",
         rich_text: {
-          equals: Number(issueNumber),
+          equals: String(issueNumber),
         },
       },
     });
