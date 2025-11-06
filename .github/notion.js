@@ -22,7 +22,7 @@ const ISSUE_URL = process.env.ISSUE_URL || 'No URL.';
 const ISSUE_STATE = process.env.ISSUE_STATE;
 const ISSUE_LABELS_JSON = process.env.ISSUE_LABELS;
 
-const { Client } = require("@notionhq/client");
+import { Client } from "@notionhq/client";
 const notion = new Client({ auth: NOTION_TOKEN });
 
 /**
