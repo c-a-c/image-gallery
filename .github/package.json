@@ -1,3 +1,9 @@
 {
-  "type": "module"
+  "type": "module",
+  "name": "github-notion-sync",
+  "version": "1.0.0",
+  "description": "GitHub IssueとNotionを同期するスクリプト",
+  "dependencies": {
+    "@notionhq/client": "^2.2.10"
+  }
 }
