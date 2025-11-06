@@ -26,7 +26,7 @@ jobs:
       # ⬇️ Notion APIクライアントをインストール
       - name: Install dependencies
         working-directory: .github
-        run: npm install @notionhq/client
+        run: npm install
 
       # 🏃‍♂️ Issue連携スクリプトを実行
       - name: Run Notion Sync Script
