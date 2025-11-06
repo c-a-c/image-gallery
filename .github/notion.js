@@ -65,7 +65,7 @@ async function findNotionPage(issueNumber) {
       filter: {
         property: "Issue ID",
         rich_text: {
-          equals: Number(issueNumber),
+          equals: String(issueNumber),
         },
       },
     });
@@ -99,7 +99,7 @@ function buildNotionProperties(isNew = false) {
       title: [{ text: { content: ISSUE_TITLE } }],
     },
     "Issue ID": {
-      rich_text: [{ text: { content: Number(ISSUE_NUMBER) } }],
+      rich_text: [{ text: { content: String(ISSUE_NUMBER) } }],
     },
     "Status": {
       status: {
