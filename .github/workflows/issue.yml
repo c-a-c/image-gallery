@@ -30,6 +30,7 @@ jobs:
       # 🏃‍♂️ Issue連携スクリプトを実行
       - name: Run Notion Sync Script
         run: node .github/notion.js
+        working-directory: .github
         env:
           # Issueのアクション情報と状態を追加
           ISSUE_ACTION: ${{ github.event.action }}        # opened, edited, closed など

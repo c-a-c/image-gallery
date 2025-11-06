@@ -11,6 +11,8 @@
  * 3. Issueが新規作成された場合、Notionページを作成
  * 4. Issueが更新された場合、Notionページを更新
  */
+import { Client } from "@notionhq/client";
+
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
@@ -22,7 +24,6 @@ const ISSUE_URL = process.env.ISSUE_URL || 'No URL.';
 const ISSUE_STATE = process.env.ISSUE_STATE;
 const ISSUE_LABELS_JSON = process.env.ISSUE_LABELS;
 
-import { Client } from "@notionhq/client";
 const notion = new Client({ auth: NOTION_TOKEN });
 
 /**
