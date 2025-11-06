@@ -36,7 +36,6 @@ if (!NOTION_DATABASE_ID) {
 }
 
 console.log("🔧 Notion クライアントを初期化中...");
-console.log(`📊 データベースID: ${NOTION_DATABASE_ID.substring(0, 8)}...`);
 console.log(`🎬 アクション: ${ISSUE_ACTION}`);
 console.log(`🔢 Issue番号: ${ISSUE_NUMBER}`);
 
@@ -47,10 +46,9 @@ const notion = new Client({ auth: NOTION_TOKEN });
  */
 function getNotionStatus(issueState) {
   if (issueState === 'closed') {
-    return '完了'; // Issueがクローズされたら「完了」
+    return 'Done';
   }
-  // その他の場合は「対応中」または「未対応」に自動設定
-  return '対応中';
+  return 'In progress';
 }
 
 /**
