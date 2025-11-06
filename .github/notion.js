@@ -95,24 +95,19 @@ function buildNotionProperties(isNew = false) {
   const notionStatus = getNotionStatus(ISSUE_STATE);
 
   const properties = {
-    // 1. タイトルプロパティ (必須)
-    "Name": {
+    "Title": {
       title: [{ text: { content: ISSUE_TITLE } }],
     },
-    // 2. ステータスプロパティ (Select/Statusタイプ)
-    "ステータス": {
+    "IssueID": {
+      rich_text: [{ text: { content: String(ISSUE_NUMBER) } }],
+    },
+    "Status": {
       status: {
         name: notionStatus,
       },
     },
-    // 3. GitHub URLプロパティ (URLタイプ)
-    "GitHub URL": {
+    "URL": {
       url: ISSUE_URL
-    },
-    // 4. ラベルプロパティ (Multi-Selectタイプ)
-    // ※DBに「ラベル」プロパティ(Multi-Select)がある場合
-    "ラベル": {
-        multi_select: JSON.parse(ISSUE_LABELS_JSON).map(name => ({ name })),
     },
   };
 
