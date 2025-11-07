@@ -3,7 +3,8 @@ name: Sync GitHub Issue to Notion
 # 🌟 トリガー: Issueがオープン、編集、クローズ、再オープンされたときに実行
 on:
   issues:
-    types: [opened, edited, closed, reopened, labeled, unlabeled] # <- ここを拡張
+    types: [opened, edited, closed, reopened] # <- ここを拡張
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -40,3 +41,4 @@ jobs:
           ISSUE_URL: ${{ github.event.issue.html_url }}
           ISSUE_STATE: ${{ github.event.issue.state }}    # open または closed
           ISSUE_LABELS: ${{ toJson(github.event.issue.labels.*.name) }} # ラベル情報をJSON形式で渡す
+          ISSUE_ASSIGNEES: ${{ toJson(github.event.issue.assignees.*.login) }} # Assignee情報をJSON形式で渡す

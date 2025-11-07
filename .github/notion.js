@@ -22,7 +22,7 @@ const ISSUE_NUMBER = process.env.ISSUE_NUMBER;
 const ISSUE_TITLE = process.env.ISSUE_TITLE || 'No Title';
 const ISSUE_URL = process.env.ISSUE_URL || 'No URL.';
 const ISSUE_STATE = process.env.ISSUE_STATE;
-const ISSUE_LABELS_JSON = process.env.ISSUE_LABELS;
+const ISSUE_ASSIGNEES_JSON = process.env.ISSUE_ASSIGNEES;
 
 // 環境変数の検証
 if (!NOTION_TOKEN) {
@@ -39,16 +39,30 @@ console.log("🔧 Notion クライアントを初期化中...");
 console.log(`🎬 アクション: ${ISSUE_ACTION}`);
 console.log(`🔢 Issue番号: ${ISSUE_NUMBER}`);
 
+let issueAssignees = [];
+try {
+  if (ISSUE_ASSIGNEES_JSON) {
+    const parsed = JSON.parse(ISSUE_ASSIGNEES_JSON);
+    issueAssignees = Array.isArray(parsed) ? parsed.map((name) => String(name)) : [];
+  }
+} catch (error) {
+  console.warn("⚠️ Assignee情報の解析に失敗しました。空の配列として扱います:", error);
+  issueAssignees = [];
+}
+
 const notion = new Client({ auth: NOTION_TOKEN });
 
 /**
  * GitHubのIssueステータスに基づき、Notionのステータス名を決定する
  */
 function getNotionStatus(issueState) {
+  if (issueState === 'open') {
+    return 'In progress';
+  }
   if (issueState === 'closed') {
     return 'Done';
   }
-  return 'In progress';
+  return 'Not started';
 }
 
 /**
@@ -74,7 +88,7 @@ async function findNotionPage(issueNumber) {
       return response.results[0].id;
     }
 
-    console.log(`ℹ️ Issue ID: ${issueNumber} に対応するページは見つかりませんでした`);
+    console.log(`Issue ID: ${issueNumber} に対応するページは見つかりませんでした`);
     return null;
   } catch (error) {
     console.error("❌ Notionデータベースの検索中にエラーが発生しました:");
@@ -106,6 +120,9 @@ function buildNotionProperties(isNew = false) {
     },
     "URL": {
       url: ISSUE_URL
+    },
+    "Assignee": {
+      multi_select: issueAssignees.map((name) => ({ name })),
     },
   };
 
@@ -157,6 +174,27 @@ async function updateNotionPage(pageId) {
 }
 
 /**
+ * 既存のNotionページのステータスのみを更新する
+ */
+async function updateNotionStatus(pageId, issueState) {
+  console.log(`アクション: ${ISSUE_ACTION} - ステータスのみ更新します (Page ID: ${pageId})`);
+  try {
+    const statusName = getNotionStatus(issueState);
+    await notion.pages.update({
+      page_id: pageId,
+      properties: {
+        "Status": {
+          status: { name: statusName },
+        },
+      },
+    });
+    console.log("✅ ステータスのみ更新しました。");
+  } catch (error) {
+    console.error("❌ ステータス更新に失敗しました:", error.body || error);
+  }
+}
+
+/**
  * メイン処理
  *
  * 動作フロー:
@@ -164,8 +202,8 @@ async function updateNotionPage(pageId) {
  * 2. Issueが新規作成（opened）の場合:
  *    - ページが存在しない → 新規作成
  *    - ページが既に存在 → スキップ（警告表示）
- * 3. Issueが更新（edited, closed, reopened, labeledなど）の場合:
- *    - ページが存在する → 既存ページを更新（タイトル、ステータス、ラベルなどを更新）
+ * 3. Issueが更新（edited, closed, reopened）の場合:
+ *    - ページが存在する → 既存ページを更新（タイトル、ステータス、Assigneeなどを更新）
  *    - ページが存在しない → 新規作成
  */
 async function main() {
@@ -176,21 +214,29 @@ async function main() {
 
     const pageId = await findNotionPage(ISSUE_NUMBER);
 
-    if (ISSUE_ACTION === 'opened') {
+    const isOpened = ISSUE_ACTION === 'opened';
+    const isClosed = ISSUE_ACTION === 'closed';
+
+    if (isOpened) {
       // Issueが新規作成された場合
       if (pageId) {
         console.log("⚠️ 警告: Issue IDに対応するページが既に存在します。スキップします。");
         return;
       }
       await createNewNotionPage();
-    }
-    else if (pageId) {
-      console.log(`既存のNotionページを更新します...`);
-      await updateNotionPage(pageId);
-    } else {
+    } else if (!pageId) {
       console.log(`Issue ID ${ISSUE_NUMBER} に対応するNotionページが見つかりませんでした。`);
+      if (isClosed) {
+        console.log("⚠️ クローズされたIssueですが対応するタスクが存在しないため、処理をスキップします。");
+        return;
+      }
       console.log(`新規ページを作成します...`);
       await createNewNotionPage();
+    } else if (isClosed) {
+      await updateNotionStatus(pageId, ISSUE_STATE);
+    } else {
+      console.log(`既存のNotionページを更新します...`);
+      await updateNotionPage(pageId);
     }
 
     console.log("\n" + "=".repeat(60));
