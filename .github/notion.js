@@ -103,15 +103,13 @@ async function findNotionPage(issueNumber) {
 /**
  * Notionページを作成または更新するための共通プロパティを構築する
  */
-function buildNotionProperties(isNew = false) {
+function buildNotionProperties(options = {}) {
+  const { includeIssueId = false } = options;
   const notionStatus = getNotionStatus(ISSUE_STATE);
 
   const properties = {
     "Title": {
       title: [{ text: { content: ISSUE_TITLE } }],
-    },
-    "Issue ID": {
-      rich_text: [{ text: { content: String(ISSUE_NUMBER) } }],
     },
     "Status": {
       status: {
@@ -119,18 +117,17 @@ function buildNotionProperties(isNew = false) {
       },
     },
     "URL": {
-      url: ISSUE_URL
+      url: ISSUE_URL,
     },
     "Assignee": {
       multi_select: issueAssignees.map((name) => ({ name })),
     },
   };
 
-  if (isNew) {
-      // 新規作成時のみ、Issue IDプロパティを設定
-      properties["Issue ID"] = {
-          rich_text: [{ text: { content: String(ISSUE_NUMBER) } }],
-      };
+  if (includeIssueId) {
+    properties["Issue ID"] = {
+      rich_text: [{ text: { content: String(ISSUE_NUMBER) } }],
+    };
   }
 
   return properties;
@@ -142,7 +139,7 @@ function buildNotionProperties(isNew = false) {
 async function createNewNotionPage() {
   console.log(`アクション: ${ISSUE_ACTION} - 新規ページを作成します`);
   try {
-    const properties = buildNotionProperties(true);
+    const properties = buildNotionProperties({ includeIssueId: true });
 
     const response = await notion.pages.create({
       parent: { database_id: NOTION_DATABASE_ID },
@@ -161,7 +158,7 @@ async function createNewNotionPage() {
 async function updateNotionPage(pageId) {
   console.log(`アクション: ${ISSUE_ACTION} - 既存ページを更新します (Page ID: ${pageId})`);
   try {
-    const properties = buildNotionProperties(false);
+    const properties = buildNotionProperties();
 
     const response = await notion.pages.update({
       page_id: pageId,
