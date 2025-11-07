@@ -1,4 +1,4 @@
-:name: Sync GitHub Issue to Notion
+name: Sync GitHub Issue to Notion
 
 # 🌟 トリガー: Issueがオープン、編集、クローズ、再オープンされたときに実行
 on:
