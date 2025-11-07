@@ -1,0 +1,44 @@
+:name: Sync GitHub Issue to Notion
+
+# 🌟 トリガー: Issueがオープン、編集、クローズ、再オープンされたときに実行
+on:
+  issues:
+    types: [opened, edited, closed, reopened] # <- ここを拡張
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    env:
+      NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 📦 Node.js環境をセットアップ
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ⬇️ Notion APIクライアントをインストール
+      - name: Install dependencies
+        working-directory: .github
+        run: npm install
+
+      # 🏃‍♂️ Issue連携スクリプトを実行
+      - name: Run Notion Sync Script
+        working-directory: .github
+        run: node notion.js
+        env:
+          # Issueのアクション情報と状態を追加
+          ISSUE_ACTION: ${{ github.event.action }}        # opened, edited, closed など
+          ISSUE_NUMBER: ${{ github.event.issue.number }}  # Issueの通し番号 (検索キー)
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_STATE: ${{ github.event.issue.state }}    # open または closed
+          ISSUE_LABELS: ${{ toJson(github.event.issue.labels.*.name) }} # ラベル情報をJSON形式で渡す
+          ISSUE_ASSIGNEES: ${{ toJson(github.event.issue.assignees.*.login) }} # Assignee情報をJSON形式で渡す
